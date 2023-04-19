@@ -8,27 +8,15 @@ public class Main {
     public static final Map<Integer, Integer> sizeToFreq = new HashMap<>();
     public static final int routesSize = 1000;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         ExecutorService threadPool = Executors.newFixedThreadPool(routesSize);
-        Runnable logic = () -> {
-            String route = generateRoute("RLRFR", 100);
-            int freqR = 0;
-
-            for (int i = 0; i < route.length(); i++) {
-                if (route.charAt(i) == 'R') {
-                    freqR++;
-                }
-            }
-            synchronized (sizeToFreq) {
-                sizeToFreq.put(freqR, sizeToFreq.containsKey(freqR) ? sizeToFreq.get(freqR) + 1 : 1);
-            }
-        };
 
         for (int i = 0; i < routesSize; i++) {
-            threadPool.submit(logic);
+            threadPool.submit(runFreqR());
         }
 
-        threadPool.shutdown();
+        threadPool.shutdownNow();
+
         List<Integer> keys = new ArrayList<>(sizeToFreq.keySet());
         keys.sort(Collections.reverseOrder());
         List<Integer> values = new ArrayList<>(sizeToFreq.values());
@@ -49,5 +37,21 @@ public class Main {
         }
 
         return route.toString();
+    }
+
+    public static Runnable runFreqR() {
+        return () -> {
+            String route = generateRoute("RLRFR", 100);
+            int freqR = 0;
+
+            for (int i = 0; i < route.length(); i++) {
+                if (route.charAt(i) == 'R') {
+                    freqR++;
+                }
+            }
+            synchronized (sizeToFreq) {
+                sizeToFreq.put(freqR, sizeToFreq.containsKey(freqR) ? sizeToFreq.get(freqR) + 1 : 1);
+            }
+        };
     }
 }
