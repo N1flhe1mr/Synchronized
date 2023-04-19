@@ -12,6 +12,7 @@ public class Main {
         ExecutorService threadPool = Executors.newFixedThreadPool(routesSize);
         Thread freqlog = runFreqLog();
         freqlog.start();
+
         for (int i = 0; i < routesSize; i++) {
             threadPool.submit(runFreqR());
         }
@@ -45,11 +46,13 @@ public class Main {
         return () -> {
             String route = generateRoute("RLRFR", 100);
             int freqR = 0;
+
             for (int i = 0; i < route.length(); i++) {
                 if (route.charAt(i) == 'R') {
                     freqR++;
                 }
             }
+
             synchronized (sizeToFreq) {
                 sizeToFreq.put(freqR, sizeToFreq.containsKey(freqR) ? sizeToFreq.get(freqR) + 1 : 1);
                 try {
@@ -66,11 +69,13 @@ public class Main {
             while (!Thread.interrupted()) {
                 synchronized (sizeToFreq) {
                     int maxFreqR = 0;
+
                     if (!sizeToFreq.isEmpty()) {
                         for (Integer freqR : sizeToFreq.keySet()) {
                             maxFreqR = Math.max(sizeToFreq.get(freqR), maxFreqR);
                         }
                     }
+
                     System.out.println("Лидер среди частот: " + maxFreqR);
                     sizeToFreq.notify();
                 }
