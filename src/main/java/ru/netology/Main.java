@@ -48,6 +48,7 @@ public class Main {
                     freqR++;
                 }
             }
+
             synchronized (sizeToFreq) {
                 sizeToFreq.put(freqR, sizeToFreq.containsKey(freqR) ? sizeToFreq.get(freqR) + 1 : 1);
             }
