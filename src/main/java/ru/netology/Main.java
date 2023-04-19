@@ -8,7 +8,7 @@ public class Main {
     public static final Map<Integer, Integer> sizeToFreq = new HashMap<>();
     public static final int routesSize = 1000;
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         ExecutorService threadPool = Executors.newFixedThreadPool(routesSize);
 
         for (int i = 0; i < routesSize; i++) {
@@ -16,7 +16,6 @@ public class Main {
         }
 
         threadPool.shutdownNow();
-
         List<Integer> keys = new ArrayList<>(sizeToFreq.keySet());
         keys.sort(Collections.reverseOrder());
         List<Integer> values = new ArrayList<>(sizeToFreq.values());
