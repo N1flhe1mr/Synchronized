@@ -8,27 +8,17 @@ public class Main {
     public static final Map<Integer, Integer> sizeToFreq = new HashMap<>();
     public static final int routesSize = 1000;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         ExecutorService threadPool = Executors.newFixedThreadPool(routesSize);
-        Runnable logic = () -> {
-            String route = generateRoute("RLRFR", 100);
-            int freqR = 0;
-
-            for (int i = 0; i < route.length(); i++) {
-                if (route.charAt(i) == 'R') {
-                    freqR++;
-                }
-            }
-            synchronized (sizeToFreq) {
-                sizeToFreq.put(freqR, sizeToFreq.containsKey(freqR) ? sizeToFreq.get(freqR) + 1 : 1);
-            }
-        };
-
+        Thread freqlog = runFreqLog();
+        freqlog.start();
         for (int i = 0; i < routesSize; i++) {
-            threadPool.submit(logic);
+            threadPool.submit(runFreqR());
         }
 
-        threadPool.shutdown();
+        freqlog.interrupt();
+        freqlog.join();
+        threadPool.shutdownNow();
         List<Integer> keys = new ArrayList<>(sizeToFreq.keySet());
         keys.sort(Collections.reverseOrder());
         List<Integer> values = new ArrayList<>(sizeToFreq.values());
@@ -49,5 +39,43 @@ public class Main {
         }
 
         return route.toString();
+    }
+
+    public static Runnable runFreqR() {
+        return () -> {
+            String route = generateRoute("RLRFR", 100);
+            int freqR = 0;
+            for (int i = 0; i < route.length(); i++) {
+                if (route.charAt(i) == 'R') {
+                    freqR++;
+                }
+            }
+            synchronized (sizeToFreq) {
+                sizeToFreq.put(freqR, sizeToFreq.containsKey(freqR) ? sizeToFreq.get(freqR) + 1 : 1);
+                try {
+                    sizeToFreq.wait();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+    }
+
+    public static Thread runFreqLog() {
+        return new Thread(() -> {
+            while (!Thread.interrupted()) {
+                synchronized (sizeToFreq) {
+                    int maxFreqR = 0;
+                    if (!sizeToFreq.isEmpty()) {
+                        for (Integer freqR : sizeToFreq.keySet()) {
+                            maxFreqR = Math.max(sizeToFreq.get(freqR), maxFreqR);
+                        }
+                    }
+                    System.out.println("Лидер среди частот: " + maxFreqR);
+                    sizeToFreq.notify();
+                }
+            }
+        }
+        );
     }
 }
